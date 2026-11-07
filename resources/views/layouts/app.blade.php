@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', 'Notes')</title>
+    <title>{{ $title ?? View::yieldContent('title', 'Notes') }}</title>
     <style>
         body { font-family: system-ui, sans-serif; background: #f6f7f9; color: #1f2328; margin: 0; }
         main { max-width: 640px; margin: 2rem auto; padding: 0 1rem; }
@@ -15,10 +15,25 @@
         .status { background: #dafbe1; border-color: #aceebb; }
         .meta { color: #656d76; font-size: .85rem; }
         .note p { white-space: pre-line; }
+        label.inline { display: flex; align-items: center; gap: .5rem; font-weight: 400; }
+        label.inline input { width: auto; }
+        nav { display: flex; justify-content: flex-end; align-items: center; gap: .75rem; }
+        nav button { margin: 0; background: transparent; color: #1f6feb; padding: 0; }
     </style>
 </head>
 <body>
     <main>
+        @auth
+            <nav>
+                <span class="meta">{{ auth()->user()->name }}</span>
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit">Log out</button>
+                </form>
+            </nav>
+        @endauth
+
+        {{ $slot ?? '' }}
         @yield('content')
     </main>
 </body>

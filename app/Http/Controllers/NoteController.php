@@ -2,19 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Note;
 use Illuminate\Http\Request;
 
 class NoteController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return view('notes.index', ['notes' => Note::latest()->get()]);
+        return view('notes.index', ['notes' => $request->user()->notes()->latest()->get()]);
     }
 
     public function store(Request $request)
     {
-        Note::create($request->validate([
+        $request->user()->notes()->create($request->validate([
             'title' => ['required', 'string', 'max:255'],
             'body' => ['required', 'string', 'max:10000'],
         ]));
