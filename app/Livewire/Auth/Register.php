@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Auth;
 
+use App\Jobs\SendWelcomeEmail;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
@@ -31,6 +32,7 @@ class Register extends Component
         ]);
 
         event(new Registered($user = User::create($validated)));
+        SendWelcomeEmail::dispatch($user);
 
         Auth::login($user);
         session()->regenerate();

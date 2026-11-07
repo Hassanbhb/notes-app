@@ -1,10 +1,14 @@
 <?php
 
+use App\Jobs\SendWelcomeEmail;
 use App\Livewire\Auth\Login;
 use App\Livewire\Auth\Register;
+use App\Mail\WelcomeMail;
 use App\Models\Note;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
@@ -28,6 +32,29 @@ test('users can register', function () {
         ->assertRedirect(route('notes.index', absolute: false));
 
     $this->assertAuthenticated();
+});
+
+test('registering queues a welcome email', function () {
+    Queue::fake();
+
+    Livewire::test(Register::class)
+        ->set('name', 'Test User')
+        ->set('email', 'test@example.com')
+        ->set('password', 'password')
+        ->set('password_confirmation', 'password')
+        ->call('register');
+
+    Queue::assertPushed(SendWelcomeEmail::class, fn ($job) => $job->user->email === 'test@example.com');
+});
+
+test('the welcome email job sends the welcome mail', function () {
+    Mail::fake();
+    $user = User::factory()->create();
+
+    (new SendWelcomeEmail($user))->handle();
+
+    Mail::assertSent(WelcomeMail::class, fn ($mail) => $mail->hasTo($user->email));
+    expect((new WelcomeMail($user))->render())->toContain($user->name);
 });
 
 test('users can log in with valid credentials', function () {
