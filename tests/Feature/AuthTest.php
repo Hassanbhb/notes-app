@@ -4,6 +4,8 @@ use App\Livewire\Auth\Login;
 use App\Livewire\Auth\Register;
 use App\Models\Note;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
 test('guests are redirected to login from notes', function () {
@@ -79,3 +81,25 @@ test('created notes belong to the current user', function () {
 
     expect($user->notes()->sole()->title)->toBe('Hello');
 });
+
+test('notes can have an image attachment shown as a thumbnail', function () {
+    Storage::fake('public');
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->post('/notes', [
+        'title' => 'Pic', 'body' => 'x', 'attachment' => UploadedFile::fake()->image('a.png'),
+    ])->assertSessionHasNoErrors();
+
+    $path = $user->notes()->sole()->attachment_path;
+    Storage::disk('public')->assertExists($path);
+    $this->get('/notes')->assertSee('<img src="'.Storage::disk('public')->url($path), false);
+});
+
+test('attachments with a disallowed type or size are rejected', function (UploadedFile $file) {
+    $this->actingAs(User::factory()->create())
+        ->post('/notes', ['title' => 'T', 'body' => 'x', 'attachment' => $file])
+        ->assertSessionHasErrors('attachment');
+})->with([
+    'svg' => fn () => UploadedFile::fake()->create('evil.svg', 1, 'image/svg+xml'),
+    'too big' => fn () => UploadedFile::fake()->create('big.pdf', 6000, 'application/pdf'),
+]);
