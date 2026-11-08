@@ -2,13 +2,30 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Note;
 use Illuminate\Http\Request;
 
 class NoteController extends Controller
 {
     public function index(Request $request)
     {
-        return view('notes.index', ['notes' => $request->user()->notes()->latest()->get()]);
+        $favoritesOnly = $request->boolean('favorites');
+
+        return view('notes.index', [
+            'favoritesOnly' => $favoritesOnly,
+            'notes' => $request->user()->notes()
+                ->when($favoritesOnly, fn ($query) => $query->where('is_favorite', true))
+                ->orderByDesc('is_favorite')->latest()->get(),
+        ]);
+    }
+
+    public function toggleFavorite(Request $request, Note $note)
+    {
+        abort_unless($note->user_id === $request->user()->id, 404);
+
+        $note->update(['is_favorite' => ! $note->is_favorite]);
+
+        return redirect()->back(fallback: route('notes.index'));
     }
 
     public function store(Request $request)

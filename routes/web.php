@@ -15,5 +15,6 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth')->group(function () {
     Route::resource('notes', NoteController::class)->only(['index', 'store']);
+    Route::patch('notes/{note}/favorite', [NoteController::class, 'toggleFavorite'])->name('notes.favorite');
     Route::post('logout', LogoutController::class)->name('logout');
 });

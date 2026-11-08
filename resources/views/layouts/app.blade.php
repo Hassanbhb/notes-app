@@ -19,6 +19,7 @@
         label.inline input { width: auto; }
         nav { display: flex; justify-content: flex-end; align-items: center; gap: .75rem; }
         nav button { margin: 0; background: transparent; color: #1f6feb; padding: 0; }
+        button.star { margin: 0; padding: .25rem .5rem; background: transparent; color: #bf8700; font-size: 1.5rem; line-height: 1; }
     </style>
 </head>
 <body>

@@ -12,7 +12,9 @@ class Note extends Model
     /** @use HasFactory<NoteFactory> */
     use HasFactory;
 
-    protected $fillable = ['title', 'body', 'attachment_path'];
+    protected $fillable = ['title', 'body', 'attachment_path', 'is_favorite'];
+
+    protected $casts = ['is_favorite' => 'boolean'];
 
     public function attachmentIsImage(): bool
     {

@@ -24,9 +24,27 @@
         <button type="submit">Add note</button>
     </form>
 
+    <p>
+        @if ($favoritesOnly)
+            <strong>Showing favorites</strong> · <a href="{{ route('notes.index') }}">Show all notes</a>
+        @else
+            <a href="{{ route('notes.index', ['favorites' => 1]) }}">★ Show only favorites</a>
+        @endif
+    </p>
+
     @forelse ($notes as $note)
         <article class="card note">
-            <h2>{{ $note->title }}</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
+                <h2>{{ $note->title }}</h2>
+                <form method="POST" action="{{ route('notes.favorite', $note) }}">
+                    @csrf
+                    @method('PATCH')
+                    <button type="submit" class="star" aria-pressed="{{ $note->is_favorite ? 'true' : 'false' }}"
+                        aria-label="{{ $note->is_favorite ? 'Remove from favorites' : 'Add to favorites' }}">
+                        {{ $note->is_favorite ? '★' : '☆' }}
+                    </button>
+                </form>
+            </div>
             <p class="meta">{{ $note->created_at->diffForHumans() }}</p>
             <p>{{ $note->body }}</p>
             @if ($note->attachment_path)
@@ -39,6 +57,6 @@
             @endif
         </article>
     @empty
-        <p class="meta">No notes yet.</p>
+        <p class="meta">{{ $favoritesOnly ? 'No favorite notes yet.' : 'No notes yet.' }}</p>
     @endforelse
 @endsection
